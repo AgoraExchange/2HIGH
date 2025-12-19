@@ -1,612 +1,277 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-  <meta name="theme-color" content="#0b0f0c" />
-  <title>HighTimer — Dab Countdown</title>
-  <style>
-    /* ==========================
-       HighTimer — ULTRA-CLEAN MOBILE LAYOUT (v4.3)
-       + Custom Presets row + Wax Facts + Beat-synced flash + TTS + Modal fix
-       + Voice fallback banner + Toast styling
-       ========================== */
-    :root{
-      --bg:#0b0f0c;
-      --panel:rgba(255,255,255,.06);
-      --accent:#57ff9a;
-      --accent-2:#1aff66;
-      --text:#eaf6ee;
-      --muted:#a6b5ac;
-      --warning:#ff5c5c;
-      --ring:rgba(87,255,154,.35);
-      --radius:16px;
-      --blur:10px;
-      --safe-t: env(safe-area-inset-top, 0);
-      --safe-b: env(safe-area-inset-bottom, 0);
-      --tap: 56px;
-      --container-w: min(430px, 100vw);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-      background:radial-gradient(900px 700px at 90% -10%, rgba(87,255,154,.12), transparent 60%),
-                 radial-gradient(800px 600px at -10% 10%, rgba(26,255,102,.08), transparent 60%),
-                 var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-    }
-
-    /* Top Bar */
-    .appbar{ position:sticky; top:0; z-index:50; width:100%; display:flex; align-items:center; justify-content:space-between;
-      padding:calc(8px + var(--safe-t)) 14px 8px; backdrop-filter: blur(var(--blur)) saturate(1.15);
-      background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.25)); border-bottom:1px solid rgba(255,255,255,.08); }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:900 }
-    .brand svg{ width:22px; height:22px }
-    .title{ font-size:1.05rem }
-    .icon-btn{ width:42px; height:42px; border-radius:12px; display:grid; place-items:center; color:var(--text);
-      border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); cursor:pointer; }
-    .icon-btn svg{ width:20px; height:20px }
-
-    /* Page container */
-    .container{ width:var(--container-w); margin:0 auto; padding:10px 12px calc(90px + var(--safe-b)); }
-
-    /* Cards */
-    .card{ background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.12);
-      border-radius:var(--radius); padding:12px; backdrop-filter: blur(var(--blur)); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-
-    /* Timer */
-    .timer{ display:grid; place-items:center; gap:8px; }
-    .ring{ width:min(72vw, 340px); height:min(72vw, 340px); position:relative }
-    .ring svg{ width:100%; height:100%; transform:rotate(-90deg) }
-    .ring .bg{ stroke:rgba(255,255,255,.16) }
-    .ring .fg{ stroke:var(--accent); filter:drop-shadow(0 0 8px rgba(87,255,154,.6)); transition:stroke-dashoffset .18s linear }
-    .ring .center{ position:absolute; inset:0; display:grid; place-items:center }
-    .time{ font-variant-numeric: tabular-nums; font-weight:900; font-size: clamp(48px, 18vw, 96px); letter-spacing:.3px }
-    .status{ min-height:1.2em; font-size:.95rem; color:var(--muted) }
-
-    /* Controls dock */
-    .dock{ position:fixed; left:0; right:0; bottom:0; z-index:60; padding:8px 10px calc(8px + var(--safe-b)); display:flex; justify-content:center; }
-    .dock-inner{ width:var(--container-w); display:flex; gap:10px; background:linear-gradient(180deg, rgba(11,15,12,.9), rgba(11,15,12,.65));
-      border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:8px; backdrop-filter: blur(var(--blur)); }
-    .btn{ appearance:none; border:none; border-radius:12px; min-height:var(--tap); flex:1 1 0; font-weight:900; font-size:1.05rem; cursor:pointer }
-    .btn.primary{ background:linear-gradient(180deg, var(--accent), var(--accent-2)); color:#04130a }
-    .btn.ghost{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid rgba(255,255,255,.14) }
-    .btn.danger{ background:linear-gradient(180deg, #ffb3b3, var(--warning)); color:#2a0000 }
-
-    /* Sections */
-    .section{ margin-top:12px }
-    .section h3{ margin:0 2px 8px; font-size:1rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:8px }
-
-    /* Chips */
-    .chips{ display:flex; gap:10px; overflow:auto; -webkit-overflow-scrolling:touch; padding:2px 2px 8px }
-    .chip{ flex:0 0 auto; padding:12px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06);
-      font-weight:800; min-height:44px; display:flex; align-items:center; gap:8px; cursor:pointer; }
-    .chip .tiny{ font-size:.82rem; color:var(--muted) }
-    .chip.active{ outline:2px solid var(--accent); background:rgba(87,255,154,.12) }
-    .chip.delete-candidate{ outline:2px solid var(--warning); background:rgba(255,92,92,.12) }
-
-    /* Custom inputs */
-    .custom{ display:flex; gap:8px; flex-wrap:wrap; align-items:center }
-    .num{ display:flex; align-items:center; gap:6px; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14) }
-    .num input{ width:70px; background:transparent; border:none; color:var(--text); font-weight:800; font-size:1.2rem; text-align:center; outline:none }
-    .muted{ color:var(--muted); font-size:.95rem }
-
-    /* Collapsible facts */
-    details.facts{ margin-top:12px }
-    details.facts > summary{ list-style:none; cursor:pointer; padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); font-weight:800; position:sticky; top:0; z-index:1; backdrop-filter:blur(10px) }
-    details.facts[open] > summary{ background:rgba(255,255,255,.1); border-bottom-left-radius:0; border-bottom-right-radius:0 }
-    .facts-wrap{ margin-top:0; max-height:40vh; overflow:auto; -webkit-overflow-scrolling:touch; padding:10px 8px 12px; display:grid; gap:10px; border:1px solid rgba(255,255,255,.14); border-top:none; border-bottom-left-radius:12px; border-bottom-right-radius:12px; background:rgba(255,255,255,.04) }
-    .fact{ background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.12); padding:12px; border-radius:10px; line-height:1.4; font-size:.98rem }
-
-    /* Flash pulse overlay (for beat-synced flash) */
-    .flash-layer{ position:fixed; inset:0; pointer-events:none; background:#fff; opacity:0; z-index:100; }
-
-    /* Modal: force hidden by default */
-    .modal{ position:fixed; inset:0; display:none !important; align-items:center; justify-content:center; background:rgba(0,0,0,.6); z-index:90; padding:20px }
-    .modal.open{ display:flex !important }
-    .modal .content{ background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.12); border-radius:18px; max-width:420px; width:calc(100vw - 24px); padding:16px; }
-
-    /* Toasts + Voice banner (visual backup when TTS fails) */
-    .toasts{
-      position:fixed;
-      bottom:calc(90px + var(--safe-b));
-      left:50%;
-      transform:translateX(-50%);
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      z-index:120;
-      pointer-events:none;
-      width:var(--container-w);
-      max-width:100vw;
-      padding:0 10px;
-    }
-    .toast,
-    .voice-banner{
-      pointer-events:auto;
-      background:radial-gradient(circle at 0 0, rgba(87,255,154,.4), transparent 55%),
-                  radial-gradient(circle at 100% 100%, rgba(26,255,102,.3), transparent 55%),
-                  rgba(5,10,7,.96);
-      border-radius:999px;
-      padding:10px 14px;
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 14px 40px rgba(0,0,0,.7);
-      font-size:.9rem;
-      font-weight:650;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      opacity:0;
-      transform:translateY(12px) scale(.97);
-      animation: toast-in .22s ease-out forwards;
-    }
-    .voice-banner{
-      font-size:.95rem;
-      letter-spacing:.01em;
-    }
-    .voice-banner.hide{
-      opacity:0;
-      transform:translateY(-4px) scale(.97);
-      transition:opacity .3s ease, transform .3s ease;
-    }
-    @keyframes toast-in{
-      from{opacity:0; transform:translateY(12px) scale(.97);}
-      to{opacity:1; transform:translateY(0) scale(1);}
-    }
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+  <meta name="theme-color" content="#06110b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>2HIGH</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <header class="appbar">
-    <div class="brand" aria-label="HighTimer">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2H7zM6 7a8 8 0 1 0 12 0H6zm2 0h8a6 6 0 1 1-8 0z"/></svg>
-      <span class="title">HighTimer</span>
+  <!-- Animated background -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="fog"></canvas>
+    <div class="grain"></div>
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand" aria-label="2HIGH">
+      <!-- ✅ FIXED LOGO: SVG icon + real text (no more squished glyphs) -->
+      <div class="logo" aria-hidden="true">
+        <svg class="logoMark" viewBox="0 0 44 44" aria-hidden="true">
+          <defs>
+            <linearGradient id="leafG" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="currentColor" stop-opacity="1"></stop>
+              <stop offset="1" stop-color="currentColor" stop-opacity=".65"></stop>
+            </linearGradient>
+          </defs>
+
+          <g fill="none" stroke="url(#leafG)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 5c-8 6-13 13-13 21 0 10 7 16 13 19 6-3 13-9 13-19 0-8-5-15-13-21z"/>
+            <path d="M22 12c-3.5 3.2-6.5 6.5-6.5 11 0 6.5 4.4 11 6.5 13 2.1-2 6.5-6.5 6.5-13 0-4.5-3-7.8-6.5-11z" opacity=".9"/>
+            <path d="M22 16v18" opacity=".95"/>
+            <path d="M16.8 26c2.2 1.2 3.6 2 5.2 2s3-.8 5.2-2" opacity=".95"/>
+          </g>
+        </svg>
+
+        <span class="logoWord">2HIGH</span>
+        <span class="logoDot" aria-hidden="true"></span>
+      </div>
+
+      <div class="tagline">
+        <div class="t1">dab timer</div>
+        <div class="t2" id="statusText">ready</div>
+      </div>
     </div>
-    <button class="icon-btn" id="infoBtn" aria-label="Help"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 7h2v2h-2V7m0 4h2v6h-2v-6m1-9A10 10 0 1 0 12 22 10 10 0 0 0 12 2Z"/></svg></button>
+
+    <button class="dabchip" id="dabChip" type="button" aria-label="Open stats and logs">
+      <span class="spark" aria-hidden="true"></span>
+      <span class="lab">DABS</span>
+      <span class="val" id="dabCount">0</span>
+    </button>
   </header>
 
-  <main class="container" role="main">
-    <!-- TIMER CARD -->
-    <section class="card timer" aria-label="Timer">
-      <div class="ring" aria-hidden="true">
-        <svg viewBox="0 0 120 120">
-          <circle class="bg" cx="60" cy="60" r="52" stroke-width="10" fill="none" />
-          <circle class="fg" id="ringFg" cx="60" cy="60" r="52" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="0" />
-        </svg>
-        <div class="center"><div class="time" id="time">01:00</div></div>
-      </div>
-      <div class="status" id="status" aria-live="polite">Pick a preset, tap Start, vibe.</div>
-    </section>
-
-    <!-- PRESETS -->
-    <section class="section">
-      <h3>Quick Presets</h3>
-      <div class="chips" id="quickChips" role="listbox" aria-label="Quick timer presets"></div>
-    </section>
-
-    <section class="section">
-      <h3>Material Presets</h3>
-      <div class="chips" id="matChips" role="listbox" aria-label="Material timer presets"></div>
-    </section>
-
-    <!-- CUSTOM PRESETS (user saved) -->
-    <section class="section">
-      <h3>Custom Presets <button class="btn ghost" id="deleteModeBtn" style="flex:0 0 auto; padding:8px 10px; min-height:40px; font-size:.95rem">Delete</button></h3>
-      <div class="chips" id="userChips" role="listbox" aria-label="Your saved presets"></div>
-    </section>
-
-    <!-- CUSTOM (create/save) -->
-    <section class="section card">
-      <h3 style="margin:0 0 8px">Create Custom</h3>
-      <div class="custom">
-        <div class="num" aria-label="Minutes input"><span class="muted">min</span>
-          <input id="mins" inputmode="numeric" pattern="[0-9]*" aria-label="Minutes" value="1" />
+  <main class="wrap">
+    <!-- Hero timer -->
+    <section class="hero glass">
+      <div class="heroRow">
+        <div class="heroLeft">
+          <div class="bigTime" id="time">01:00</div>
+          <div class="metaLine">
+            <span class="pill" id="activePresetLabel">Standard</span>
+            <span class="dot">•</span>
+            <span class="pill muted" id="activeToolLabel">Glass Dab Rig</span>
+            <span class="dot">•</span>
+            <span class="pill muted" id="activeWaxLabel">Badder</span>
+          </div>
         </div>
-        <div class="num" aria-label="Seconds input"><span class="muted">sec</span>
-          <input id="secs" inputmode="numeric" pattern="[0-9]*" aria-label="Seconds" value="0" />
+
+        <div class="ringBox" aria-hidden="true">
+          <svg viewBox="0 0 160 160">
+            <circle class="rbg" cx="80" cy="80" r="62" />
+            <circle class="rfg" id="ring" cx="80" cy="80" r="62" />
+          </svg>
+
+          <div class="heat cool" id="heatState">
+            <div class="heatLabel">heat</div>
+            <div class="heatValue" id="heatValue">cool</div>
+          </div>
         </div>
-        <button class="btn ghost" id="applyCustom" style="flex:0 0 auto">Set Time</button>
-        <button class="btn ghost" id="savePreset" style="flex:0 0 auto">Save Preset</button>
+      </div>
+
+      <div class="heroFooter">
+        <div class="mini glass2">
+          <div class="k">Sound</div>
+          <div class="v" id="soundState">On</div>
+        </div>
+        <div class="mini glass2">
+          <div class="k">Today</div>
+          <div class="v" id="todayCount">0</div>
+        </div>
+        <button class="infoBtn glass2" id="infoBtn" type="button" aria-label="Open info">
+          <span class="i">i</span>
+          <span class="txt">Intel</span>
+        </button>
       </div>
     </section>
 
-    <!-- FACTS -->
-    <details class="facts section card">
-      <summary>Glass Facts</summary>
-      <div class="facts-wrap" id="factsGlass"></div>
-    </details>
-    <details class="facts section card">
-      <summary>Wax Facts</summary>
-      <div class="facts-wrap" id="factsWax"></div>
-    </details>
+    <!-- Presets -->
+    <section class="section">
+      <div class="sectionHead">
+        <h2>Presets</h2>
+        <div class="actions">
+          <button class="chipBtn" id="addPresetBtn" type="button">+ Add</button>
+          <button class="chipBtn ghost" id="manageBtn" type="button">Manage</button>
+        </div>
+      </div>
+
+      <div class="presetRail" id="presetRail"></div>
+      <p class="subhint" id="manageHint" hidden>Tap a card to edit or delete.</p>
+    </section>
+
+    <!-- Facts / intel cards -->
+    <section class="section">
+      <div class="sectionHead">
+        <h2>Terp Intel</h2>
+        <button class="chipBtn ghost" id="shuffleFacts" type="button">Shuffle</button>
+      </div>
+
+      <div class="intelGrid">
+        <article class="intel glass2">
+          <div class="cap">Wax</div>
+          <div class="txt" id="waxFact"></div>
+        </article>
+        <article class="intel glass2">
+          <div class="cap">Tool</div>
+          <div class="txt" id="toolFact"></div>
+        </article>
+      </div>
+    </section>
+
+    <div class="pad"></div>
   </main>
 
-  <!-- CONTROLS DOCK (thumb zone) -->
+  <!-- Bottom thumb dock -->
   <nav class="dock" aria-label="Timer controls">
-    <div class="dock-inner">
-      <button class="btn primary" id="startBtn">Start</button>
-      <button class="btn ghost" id="pauseBtn" disabled>Pause</button>
-      <button class="btn ghost" id="resetBtn" disabled>Reset</button>
-      <button class="icon-btn" id="voiceBtn" aria-pressed="true" aria-label="Toggle voice" style="flex:0 0 42px">
-        <svg id="voiceIcon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3m7 9a7 7 0 0 1-14 0H3a9 9 0 0 0 18 0z"/></svg>
-      </button>
-      <button class="icon-btn" id="muteBtn" aria-pressed="false" aria-label="Toggle sound" style="flex:0 0 42px">
-        <svg id="muteIcon" viewBox="0 0 24 24"><path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5zm12.59 3 1.7 1.71 1.41-1.41-1.7-1.71 1.7-1.71-1.41-1.41L17.59 9l-1.71-1.71-1.41 1.41 1.7 1.71-1.7 1.71 1.41 1.41L17.59 12z"/></svg>
+    <div class="dockInner glass">
+      <button class="dockBtn main" id="startBtn" type="button">Start</button>
+      <button class="dockBtn" id="pauseBtn" type="button" disabled>Pause</button>
+      <button class="dockBtn" id="resetBtn" type="button" disabled>Reset</button>
+
+      <button class="dockIcon" id="muteBtn" type="button" aria-pressed="false" aria-label="Mute">
+        <svg id="muteIcon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5z"/>
+        </svg>
       </button>
     </div>
   </nav>
 
-  <!-- Flash overlay for beat pulses -->
-  <div class="flash-layer" id="flashLayer"></div>
-
-  <!-- Toasts & Help -->
+  <!-- Toasts -->
   <div class="toasts" id="toasts" aria-live="assertive"></div>
-  <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" aria-hidden="true">
-    <div class="content">
-      <h3 id="helpTitle" style="margin-top:0">How it works</h3>
-      <p>Tap a preset or set a custom time, then <b>Start</b>. We keep the screen awake. When it ends: synced white flashes with a 5s lo-fi/roots chime, voice line, and a vibration. Use the dock to toggle <b>sound</b> or <b>voice</b>.</p>
-      <p class="muted">Disclaimer: Defaults lean slightly longer for thin $15 bangers (faster heat loss).</p>
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
-        <button class="btn ghost" id="closeHelp">Close</button>
+
+  <!-- Preset modal -->
+  <div class="modal" id="presetModal" aria-hidden="true">
+    <div class="sheet glass">
+      <div class="sheetHead">
+        <div>
+          <div class="sheetTitle" id="presetTitle">New preset</div>
+          <div class="sheetSub">Save tool + wax + cooldown time.</div>
+        </div>
+        <button class="x" id="closePreset" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="sheetBody">
+        <label class="field">
+          <span>Name</span>
+          <input id="pName" placeholder="e.g., Low Temp Flavor" maxlength="26" />
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span>Minutes</span>
+            <input id="pMin" type="number" inputmode="numeric" min="0" max="59" value="1" />
+          </label>
+          <label class="field">
+            <span>Seconds</span>
+            <input id="pSec" type="number" inputmode="numeric" min="0" max="59" value="0" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Tool</span>
+          <select id="pTool">
+            <option>Glass Dab Rig</option>
+            <option>Lookah Seahorse Plus</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Wax</span>
+          <select id="pWax">
+            <option>Live Resin</option>
+            <option>Badder</option>
+            <option>Shatter</option>
+            <option>Rosin</option>
+            <option>Sugar Diamonds</option>
+            <option>Distillate</option>
+          </select>
+        </label>
+
+        <div class="sheetActions">
+          <button class="chipBtn danger" id="deletePreset" type="button" hidden>Delete</button>
+          <button class="chipBtn ghost" id="cancelPreset" type="button">Cancel</button>
+          <button class="chipBtn" id="savePreset" type="button">Save</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-  (function(){
-    'use strict';
+  <!-- Info modal -->
+  <div class="modal" id="infoModal" aria-hidden="true">
+    <div class="sheet tall glass">
+      <div class="sheetHead">
+        <div>
+          <div class="sheetTitle">2HIGH Intel</div>
+          <div class="sheetSub">Stats + logs + settings.</div>
+        </div>
+        <button class="x" id="closeInfo" type="button" aria-label="Close">✕</button>
+      </div>
 
-    const $ = s=>document.querySelector(s); const $$ = s=>Array.from(document.querySelectorAll(s));
+      <div class="sheetBody">
+        <div class="stats">
+          <div class="stat glass2">
+            <div class="k">Total dabs</div>
+            <div class="v" id="statTotal">0</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used tool</div>
+            <div class="v" id="statTool">—</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used wax</div>
+            <div class="v" id="statWax">—</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used timer</div>
+            <div class="v" id="statTimer">—</div>
+          </div>
+        </div>
 
-    /* STATE */
-    const storeKey = 'hightimer:v4.2';
-    const state = { total:60, remaining:60, running:false, muted:false, haptics:true, wakeLock:null, startWall:0, saved:[], lastPreset:null, deleteMode:false, voiceEnabled:true, voiceIdx:0 };
-    try{
-      const saved = JSON.parse(localStorage.getItem(storeKey)||'{}');
-      Object.assign(state, {
-        muted: !!saved.muted,
-        haptics: saved.haptics ?? true,
-        saved: Array.isArray(saved.saved) ? saved.saved.slice(0,24) : [],
-        lastPreset: saved.lastPreset || null,
-        voiceEnabled: saved.voiceEnabled ?? true,
-        voiceIdx: saved.voiceIdx ?? 0
-      });
-    }catch{}
-    const persist = ()=> localStorage.setItem(storeKey, JSON.stringify({
-      muted:state.muted, haptics:state.haptics, saved:state.saved, lastPreset:state.lastPreset, voiceEnabled:state.voiceEnabled, voiceIdx: state.voiceIdx
-    }));
+        <div class="toggles">
+          <button class="toggle glass2" id="voiceToggle" type="button" aria-pressed="true">
+            <span class="t">Voice callout</span>
+            <span class="s" id="voiceState">On</span>
+          </button>
+          <button class="toggle glass2" id="hapticsToggle" type="button" aria-pressed="true">
+            <span class="t">Haptics</span>
+            <span class="s" id="hapticsState">On</span>
+          </button>
+          <button class="toggle glass2 danger" id="clearAll" type="button">
+            <span class="t">Clear all history</span>
+            <span class="s">⚠</span>
+          </button>
+        </div>
 
-    /* FLASH (beat-synced) */
-    const flashEl = $('#flashLayer');
-    function flashPulse(){ flashEl.animate([{opacity:0},{opacity:.22},{opacity:0}], {duration:160, easing:'ease-out'}); }
+        <div class="logHead">
+          <h3>Dab Log</h3>
+          <div class="logSub">Only logs when the timer actually hits 0.</div>
+        </div>
+        <div class="log" id="logList"></div>
 
-    /* AUDIO (5s reggae/lofi jingle with flash on each offbeat) */
-    let audioCtx;
-    const audio={
-      nodes:[],
-      ensure(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch{} } return !!audioCtx; },
-      stop(){ this.nodes.forEach(n=>{try{n.stop(0); n.disconnect();}catch{}}); this.nodes=[]; },
-      async play(){
-        if(state.muted) return;
-        if(!this.ensure()) return;
-        try{ if(audioCtx.state==='suspended') await audioCtx.resume(); }catch{}
-        const c=audioCtx;
-        const master=c.createGain(); master.gain.value=0.24; master.connect(c.destination);
-        const len=5, now=c.currentTime, beat=60/92, tones=[220,261.63,329.63];
-        for(let i=0;i<Math.ceil(len/beat);i++){
-          const t=now+i*beat+beat*.5;
-          const g=c.createGain(); g.connect(master);
-          g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.75,t+.015); g.gain.exponentialRampToValueAtTime(.001,t+.22);
-          tones.forEach((f,j)=>{ const o=c.createOscillator(), e=c.createGain(); o.type=j? 'square':'triangle'; o.frequency.setValueAtTime(f,t); o.connect(e); e.connect(g); o.start(t); o.stop(t+.25); this.nodes.push(o,e);});
-          this.nodes.push(g);
-          const delay=(t-now)*1000; setTimeout(flashPulse, Math.max(0, delay));
-        }
-        const sub=c.createOscillator(), sg=c.createGain(); sub.type='sine'; sg.gain.value=.18; sub.connect(sg); sg.connect(master);
-        sub.frequency.setValueAtTime(110,now); sub.frequency.exponentialRampToValueAtTime(55,now+len); sub.start(now); sub.stop(now+len);
-        this.nodes.push(sub,sg,master);
-        setTimeout(()=>this.stop(), (len+.2)*1000);
-      }
-    };
-    const uiTick=()=>{ if(state.muted) return; if(!audio.ensure()) return; const c=audioCtx,o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.value=880; g.gain.value=.05; o.connect(g); g.connect(c.destination); const t=c.currentTime; o.start(t); o.stop(t+.06); };
+        <p class="legal">
+          Keep it chill: start lower temp, sip water, and don’t roast your lungs for clout.
+        </p>
+      </div>
+    </div>
+  </div>
 
-    /* TOASTS & VOICE BANNER */
-    const toasts=$('#toasts');
-    const toast=msg=>{
-      const t=document.createElement('div');
-      t.className='toast';
-      t.textContent=msg;
-      toasts.appendChild(t);
-      setTimeout(()=>{ t.classList.add('hide'); }, 1900);
-      setTimeout(()=>{ t.remove(); }, 2400);
-    };
-
-    // Visual backup if TTS can't speak
-    function showVoiceBanner(text){
-      const b = document.createElement('div');
-      b.className = 'voice-banner';
-      b.textContent = text;
-      toasts.appendChild(b);
-      // stay visible ~5s
-      setTimeout(()=>{ b.classList.add('hide'); }, 4700);
-      setTimeout(()=>{ b.remove(); }, 5200);
-    }
-
-    /* TTS (Jarvis-ish male voice) */
-    const VOICE_LINES = [
-      "Load the banger!",
-      "Load the wax.",
-      "Holy shit, you are about to get high as fuck.",
-      "Good luck, my friend.",
-      "Let's vibe.",
-      "Proceed when ready.",
-      "Damn bro, this dab's going to be hot.",
-      "Let it cool down for 5 seconds before loading it.",
-      "You're about to get the dab sweats!",
-      "Get some water handy - you're gonna cough like hell...",
-      "Too hot? Count to five, then load.",
-      "Small scoop, huge clouds.",
-      "Hydrate up, legend.",
-      "Mind the cooldown, captain.",
-      "Low temp, max terps.",
-      "Prep the cap and pearl.",
-      "Deep breath in, smooth exhale.",
-      "Ready to blast? Go gentle.",
-      "Heat, wait, flavor - trust the process.",
-      "Steady torch, steady hands.",
-      "Grab a napkin - reclaim happens.",
-      "Queue the coughs in 3...2...1.",
-      "Ceramic tongs save fingerprints.",
-      "Line up the rig, then rip.",
-      "Respect your lungs - sip it."
-    ];
-    const tts = {
-      voice: null,
-      ensured: false,
-      ensure(){
-        if(!('speechSynthesis' in window)) return false;
-        if(this.ensured) return true;
-        const pick=()=>{
-          const voices = speechSynthesis.getVoices();
-          if(!voices || !voices.length) return false;
-          const prefer = [/(Male|Jarvis|David|Daniel|Brian|Matthew|Justin|Joey|Guy|Ryan)/i];
-          const en = voices.filter(v=>/en[-_]/i.test(v.lang));
-          const match = en.find(v=> prefer.some(rx=> rx.test(v.name))) || en[0] || voices[0];
-          this.voice = match || null; return true;
-        };
-        let ok = pick();
-        if(!ok){
-          speechSynthesis.onvoiceschanged = ()=>{
-            if(pick()){
-              this.ensured=true;
-              speechSynthesis.onvoiceschanged=null;
-            }
-          };
-        } else {
-          this.ensured=true;
-        }
-        return this.ensured;
-      },
-      speak(text){
-        // If user disabled voice manually, respect that (no fallback banner).
-        if(!state.voiceEnabled) return;
-
-        // No TTS support at all → use visual announcement.
-        if(!('speechSynthesis' in window)){
-          showVoiceBanner(text);
-          return;
-        }
-
-        if(!this.ensured) this.ensure();
-
-        const u = new SpeechSynthesisUtterance(text);
-        if(this.voice) u.voice = this.voice;
-        u.lang = (this.voice?.lang)||'en-US';
-        u.rate = 1.04; u.pitch = 0.95; u.volume = 1;
-
-        let timer = null;
-        let started = false;
-
-        const MAX_MS = 3200;
-
-        u.onstart = ()=>{
-          started = true;
-          timer = setTimeout(()=>{
-            try{ speechSynthesis.cancel(); }catch{}
-          }, MAX_MS);
-        };
-        u.onend = ()=>{
-          if(timer) clearTimeout(timer);
-        };
-        u.onerror = ()=>{
-          if(timer) clearTimeout(timer);
-          // If TTS errored out before actually starting, back it up visually.
-          if(!started) showVoiceBanner(text);
-        };
-
-        try{
-          // Try speaking; if it never actually starts within a short window,
-          // assume platform blocked it and show banner instead.
-          speechSynthesis.speak(u);
-          setTimeout(()=>{
-            if(!started){
-              try{ speechSynthesis.cancel(); }catch{}
-              showVoiceBanner(text);
-            }
-          }, 800);
-        }catch{
-          showVoiceBanner(text);
-        }
-      },
-      speakNext(){
-        if(!VOICE_LINES.length) return;
-        let idx = Math.floor(Math.random()*VOICE_LINES.length);
-        if(VOICE_LINES.length>1 && idx===state.voiceIdx) idx = (idx+1)%VOICE_LINES.length;
-        const line = VOICE_LINES[idx];
-        this.speak(line);
-        state.voiceIdx = idx; persist();
-      }
-    };
-
-    /* TIMER */
-    const timeEl=$('#time'), statusEl=$('#status'), ringEl=$('#ringFg'), startBtn=$('#startBtn'), pauseBtn=$('#pauseBtn'), resetBtn=$('#resetBtn');
-    const CIRC=2*Math.PI*52; ringEl.setAttribute('stroke-dasharray', String(CIRC)); let raf=0;
-    const fmt=s=>{s=Math.max(0,Math.round(s)); const m=Math.floor(s/60), ss=s%60; return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};
-    function setTotal(sec){ state.total=Math.max(1,sec|0); state.remaining=state.total; render(); }
-    function render(){ timeEl.textContent=fmt(state.remaining); const p=1-(state.remaining/state.total); ringEl.style.strokeDashoffset=String(p*CIRC); pauseBtn.disabled=!state.running; resetBtn.disabled=!state.running && state.remaining===state.total; }
-    function tick(){
-      if(!state.running){ cancelAnimationFrame(raf); return;}
-      const now=Date.now(); const elapsed=Math.max(0, Math.round((now-state.startWall)/1000));
-      state.remaining=Math.max(0, state.total-elapsed); render();
-      if(state.remaining<=0){ finish(); return;}
-      raf=requestAnimationFrame(tick);
-    }
-    async function requestWake(){ if('wakeLock' in navigator){ try{ state.wakeLock=await navigator.wakeLock.request('screen'); state.wakeLock.addEventListener('release',()=>state.wakeLock=null);}catch{ toast("Can't keep screen awake—keep me in view."); } } }
-    function releaseWake(){ try{ state.wakeLock&&state.wakeLock.release(); }catch{} finally{ state.wakeLock=null; } }
-    function start(){ if(state.running) return; uiTick(); tts.ensure(); state.running=true; state.startWall=Date.now()-(state.total-state.remaining)*1000; statusEl.textContent='Counting…'; requestWake(); raf=requestAnimationFrame(tick); pauseBtn.textContent='Pause'; pauseBtn.disabled=false; resetBtn.disabled=false; if(state.haptics&&'vibrate' in navigator) navigator.vibrate(30); }
-    function pause(){ if(!state.running) return; state.running=false; uiTick(); statusEl.textContent='Paused'; releaseWake(); cancelAnimationFrame(raf); if(state.haptics&&'vibrate' in navigator) navigator.vibrate([10,40,10]); }
-    function reset(){ if(state.running && !confirm('Reset the countdown?')) return; state.running=false; state.remaining=state.total; uiTick(); render(); statusEl.textContent='Ready'; releaseWake(); cancelAnimationFrame(raf); }
-    function finish(){ state.running=false; state.remaining=0; render(); statusEl.textContent='Blast off.'; releaseWake(); cancelAnimationFrame(raf); if(state.haptics&&'vibrate' in navigator) navigator.vibrate([50,60,50,60,120]); audio.play(); tts.speakNext(); }
-    startBtn.addEventListener('click',()=>{ if(state.remaining<=0) state.remaining=state.total; start(); });
-    pauseBtn.addEventListener('click',()=>{ if(!state.running){ start(); pauseBtn.textContent='Pause'; } else { pause(); pauseBtn.textContent='Resume'; } });
-    resetBtn.addEventListener('click',reset);
-
-    /* PRESETS */
-    const quick=[30,45,60,85,95,105];
-    const materials=[
-      {name:'Shatter',s:45,tip:'Fast heat loss banger → slightly longer cool-down.'},
-      {name:'Badder',s:60,tip:'Smooth profile around 1 minute.'},
-      {name:'Live Resin',s:85,tip:'Balance flavor & vapor @ ~1:25.'},
-      {name:'Sugar Diamonds',s:95,tip:'Dense crystals—give it ~1:35.'},
-      {name:'Rosin',s:75,tip:'Press purity—~1:15.'},
-      {name:'Distillate',s:30,tip:'Quick hits—~30s.'},
-    ];
-    const quickWrap=$('#quickChips');
-    function chip(label,seconds,tip,dataset){
-      const el=document.createElement('button');
-      el.className='chip'; el.title=tip||'';
-      if(dataset){ Object.entries(dataset).forEach(([k,v])=> el.dataset[k]=v ); }
-      el.innerHTML=`<strong>${label}</strong> <span class="tiny">${fmt(seconds)}</span>`;
-      el.addEventListener('click',()=>{
-        if(state.deleteMode && el.dataset.id){
-          const idx = state.saved.findIndex(p=> String(p.id)===String(el.dataset.id));
-          if(idx>-1){ state.saved.splice(idx,1); persist(); renderSaved(); toast('Deleted'); }
-          return;
-        }
-        $$('.chip').forEach(c=>c.classList.remove('active','delete-candidate'));
-        el.classList.add('active'); setTotal(seconds); state.lastPreset={label,seconds}; persist(); statusEl.textContent=`Preset: ${label}`;
-      });
-      return el;
-    }
-    quick.forEach(s=> quickWrap.appendChild(chip(s<60? s+'s':'Custom', s)) );
-    quickWrap.children[0].querySelector('strong').textContent='30s';
-    quickWrap.children[1].querySelector('strong').textContent='45s';
-    quickWrap.children[2].querySelector('strong').textContent='1:00';
-    quickWrap.children[3].querySelector('strong').textContent='1:25';
-    quickWrap.children[4].querySelector('strong').textContent='1:35';
-    quickWrap.children[5].querySelector('strong').textContent='1:45';
-
-    const matWrap=$('#matChips'); materials.forEach(m=> matWrap.appendChild(chip(m.name,m.s,m.tip)) );
-
-    if(state.lastPreset){
-      setTotal(state.lastPreset.seconds); statusEl.textContent=`Preset: ${state.lastPreset.label}`;
-      [...$$('.chip')].find(c=>c.textContent.includes(state.lastPreset.label))?.classList.add('active');
-    } else { setTotal(60); quickWrap.children[2].classList.add('active'); }
-
-    /* CUSTOM CREATION */
-    $('#applyCustom').addEventListener('click',()=>{
-      const m=parseInt($('#mins').value||'0',10)||0;
-      const s=parseInt($('#secs').value||'0',10)||0;
-      const tot=Math.min(59*60+59, Math.max(1, m*60+s));
-      setTotal(tot); statusEl.textContent='Custom set'; $$('.chip').forEach(c=>c.classList.remove('active'));
-    });
-    $('#savePreset').addEventListener('click',()=>{
-      const tot=state.total; if(!tot) return;
-      const name=prompt('Name this preset:', `Preset ${fmt(tot)}`); if(!name) return;
-      const id=Date.now(); state.saved.unshift({id, name, s:tot});
-      state.saved=state.saved.slice(0,24); persist(); renderSaved(); toast('Saved preset');
-    });
-
-    /* CUSTOM PRESETS ROW (userChips) + Delete mode */
-    const userWrap = $('#userChips'); const deleteBtn = $('#deleteModeBtn');
-    function renderSaved(){
-      userWrap.innerHTML='';
-      state.saved.forEach(p=>{
-        const c=chip(p.name, p.s, '', { id: p.id });
-        if(state.deleteMode) c.classList.add('delete-candidate');
-        userWrap.appendChild(c);
-      });
-      if(!state.saved.length){ userWrap.innerHTML = '<span class="muted" style="padding:8px">No custom presets yet.</span>'; }
-    }
-    function setDeleteMode(on){
-      state.deleteMode = on; deleteBtn.textContent = on? 'Done' : 'Delete';
-      $$('#userChips .chip').forEach(c=> c.classList.toggle('delete-candidate', on));
-    }
-    deleteBtn.addEventListener('click', ()=>{ setDeleteMode(!state.deleteMode); });
-    renderSaved();
-
-    /* FACTS */
-    const GLASS=[
-      "Thin “$15” bangers lose heat faster—slightly longer cool-down gives smoother pulls.",
-      "Carb caps increase vaporization efficiency—spin for even heat distribution.",
-      "Avoid torching the joint—thermal shock can crack glass over time.",
-      "Use distilled water to reduce mineral spots and keep flavor clean.",
-      "Cold-starts preserve terps: load first, low heat, slow draw.",
-      "Let hot bangers rest on a heat-safe pad; cold surfaces can stress glass.",
-      "Sticky reclaim builds draw resistance—clean joints and downstems often."
-    ];
-    const WAX=[
-      "Live resin = high terp retention; run slightly cooler for flavor.",
-      "Sugar diamonds are dense—benefit from a touch longer cool-down.",
-      "Rosin prefers moderate temps to avoid burnt taste and preserve profile.",
-      "Shatter can be brittle; steady heat application prevents scorching.",
-      "Badder/Butter textures melt evenly—consistent airflow helps vaporize.",
-      "Distillate hits fast; shorter timers (≈30s) often feel best for small dabs."
-    ];
-    $('#factsGlass').innerHTML = GLASS.map(f=>`<div class="fact">${f}</div>`).join('');
-    $('#factsWax').innerHTML = WAX.map(f=>`<div class="fact">${f}</div>`).join('');
-
-    /* MUTE / VOICE / HELP */
-    // Help modal (forced closed on init)
-    const helpModal=$('#helpModal');
-    helpModal.classList.remove('open'); helpModal.setAttribute('aria-hidden','true');
-    function openHelp(){ helpModal.classList.add('open'); helpModal.removeAttribute('aria-hidden'); }
-    function closeHelp(){ helpModal.classList.remove('open'); helpModal.setAttribute('aria-hidden','true'); }
-    $('#infoBtn').addEventListener('click', openHelp);
-    $('#closeHelp').addEventListener('click', closeHelp);
-    helpModal.addEventListener('click', e=>{ if(e.target===helpModal) closeHelp(); });
-    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeHelp(); });
-
-    const muteBtn=$('#muteBtn'), muteIcon=$('#muteIcon');
-    function applyMuteIcon(){
-      muteBtn.setAttribute('aria-pressed', String(state.muted));
-      muteIcon.innerHTML = state.muted
-        ? '<path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5zm9.59 3 2.12 2.12-1.41 1.41L13.17 13l-2.12 2.12-1.41-1.41L11.76 12 9.64 9.88l1.41-1.41L13.17 10l2.12-2.12 1.41 1.41L14 11.59z"/>'
-        : '<path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5z"/>';
-    }
-    applyMuteIcon();
-    muteBtn.addEventListener('click', async()=>{
-      state.muted=!state.muted; applyMuteIcon(); persist();
-      if(!state.muted){ try{ await audioCtx?.resume(); }catch{} uiTick(); toast('Sound on'); }
-      else { audio.stop(); toast('Muted'); }
-    });
-
-    const voiceBtn=$('#voiceBtn'), voiceIcon=$('#voiceIcon');
-    function applyVoiceIcon(){ voiceBtn.setAttribute('aria-pressed', String(state.voiceEnabled)); voiceIcon.style.opacity = state.voiceEnabled? '1' : '.5'; }
-    applyVoiceIcon();
-    voiceBtn.addEventListener('click', ()=>{ state.voiceEnabled = !state.voiceEnabled; applyVoiceIcon(); persist(); toast(state.voiceEnabled? 'Voice on' : 'Voice off'); if(state.voiceEnabled) tts.ensure(); });
-
-    /* PWA-lite SW (cache this page) */
-    if('serviceWorker' in navigator){
-      const sw = "self.addEventListener('install',e=>{self.skipWaiting(); e.waitUntil(caches.open('hightimer-v4-2').then(c=>c.addAll(['./']))) }); self.addEventListener('activate',e=>self.clients.claim()); self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})";
-      const url = URL.createObjectURL(new Blob([sw], {type:'text/javascript'}));
-      navigator.serviceWorker.register(url).catch(()=>{});
-    }
-
-    // Init
-    render();
-  })();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
