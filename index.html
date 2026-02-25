@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+  <meta name="theme-color" content="#06110b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="2HIGH" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <title>2HIGH</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="launchCurtain" id="launchCurtain" aria-hidden="true"><div class="launchOrb"></div><div class="launchText">2HIGH</div></div>
+  <!-- Animated background -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="fog"></canvas>
+    <div class="grain"></div>
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand" aria-label="2HIGH">
+      <!-- ✅ FIXED LOGO: SVG icon + real text (no more squished glyphs) -->
+      <div class="logo" aria-hidden="true">
+        <svg class="logoMark" viewBox="0 0 44 44" aria-hidden="true">
+          <defs>
+            <linearGradient id="leafG" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="currentColor" stop-opacity="1"></stop>
+              <stop offset="1" stop-color="currentColor" stop-opacity=".65"></stop>
+            </linearGradient>
+          </defs>
+
+          <g fill="none" stroke="url(#leafG)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 5c-8 6-13 13-13 21 0 10 7 16 13 19 6-3 13-9 13-19 0-8-5-15-13-21z"/>
+            <path d="M22 12c-3.5 3.2-6.5 6.5-6.5 11 0 6.5 4.4 11 6.5 13 2.1-2 6.5-6.5 6.5-13 0-4.5-3-7.8-6.5-11z" opacity=".9"/>
+            <path d="M22 16v18" opacity=".95"/>
+            <path d="M16.8 26c2.2 1.2 3.6 2 5.2 2s3-.8 5.2-2" opacity=".95"/>
+          </g>
+        </svg>
+
+        <span class="logoWord">2HIGH</span>
+        <span class="logoDot" aria-hidden="true"></span>
+      </div>
+
+      <div class="tagline">
+        <div class="t1">dab timer</div>
+        <div class="t2" id="statusText">ready</div>
+      </div>
+    </div>
+
+    <button class="dabchip" id="dabChip" type="button" aria-label="Open stats and logs">
+      <span class="spark" aria-hidden="true"></span>
+      <span class="lab">DABS</span>
+      <span class="val" id="dabCount">0</span>
+    </button>
+  </header>
+
+  <main class="wrap">
+    <!-- Hero timer -->
+    <section class="hero glass">
+      <div class="heroRow">
+        <div class="heroLeft">
+          <div class="bigTime" id="time">01:00</div>
+          <div class="metaLine">
+            <span class="pill" id="activePresetLabel">Standard</span>
+            <span class="dot">•</span>
+            <span class="pill muted" id="activeToolLabel">Glass Dab Rig</span>
+            <span class="dot">•</span>
+            <span class="pill muted" id="activeWaxLabel">Badder</span>
+          </div>
+        </div>
+
+        <div class="ringBox" aria-hidden="true">
+          <svg viewBox="0 0 160 160">
+            <circle class="rbg" cx="80" cy="80" r="62" />
+            <circle class="rfg" id="ring" cx="80" cy="80" r="62" />
+          </svg>
+
+          <div class="heat cool" id="heatState">
+            <div class="heatLabel">heat</div>
+            <div class="heatValue" id="heatValue">cool</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heroFooter">
+        <div class="mini glass2">
+          <div class="k">Sound</div>
+          <div class="v" id="soundState">On</div>
+        </div>
+        <div class="mini glass2">
+          <div class="k">Today</div>
+          <div class="v" id="todayCount">0</div>
+        </div>
+        <button class="mini wakeMini glass2" id="wakeBtn" type="button" aria-pressed="false" aria-label="Keep screen awake">
+          <div class="k">Screen</div>
+          <div class="v" id="wakeState">Auto</div>
+        </button>
+        <button class="infoBtn glass2" id="infoBtn" type="button" aria-label="Open info">
+          <span class="i">i</span>
+          <span class="txt">Intel</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Presets -->
+    <section class="section">
+      <div class="sectionHead">
+        <h2>Presets</h2>
+        <div class="actions">
+          <button class="chipBtn" id="addPresetBtn" type="button">+ Add</button>
+          <button class="chipBtn ghost" id="manageBtn" type="button">Manage</button>
+        </div>
+      </div>
+
+      <div class="presetRail" id="presetRail"></div>
+      <p class="subhint" id="manageHint" hidden>Tap a card to edit or delete.</p>
+    </section>
+
+    <!-- Facts / intel cards -->
+    <section class="section">
+      <div class="sectionHead">
+        <h2>Terp Intel</h2>
+        <button class="chipBtn ghost" id="shuffleFacts" type="button">Shuffle</button>
+      </div>
+
+      <div class="intelGrid">
+        <article class="intel glass2">
+          <div class="cap">Wax</div>
+          <div class="txt" id="waxFact"></div>
+        </article>
+        <article class="intel glass2">
+          <div class="cap">Tool</div>
+          <div class="txt" id="toolFact"></div>
+        </article>
+      </div>
+    </section>
+
+    <div class="pad"></div>
+  </main>
+
+  <!-- Bottom thumb dock -->
+  <nav class="dock" aria-label="Timer controls">
+    <div class="dockInner glass">
+      <button class="dockBtn main" id="startBtn" type="button">Start</button>
+      <button class="dockBtn" id="pauseBtn" type="button" disabled>Pause</button>
+      <button class="dockBtn" id="resetBtn" type="button" disabled>Reset</button>
+
+      <button class="dockIcon" id="muteBtn" type="button" aria-pressed="false" aria-label="Mute">
+        <svg id="muteIcon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M5 9v6h4l5 5V4L9 9H5z"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Toasts -->
+  <div class="toasts" id="toasts" aria-live="assertive"></div>
+
+  <!-- Preset modal -->
+  <div class="modal" id="presetModal" aria-hidden="true">
+    <div class="sheet glass">
+      <div class="sheetHead">
+        <div>
+          <div class="sheetTitle" id="presetTitle">New preset</div>
+          <div class="sheetSub">Save tool + wax + cooldown time.</div>
+        </div>
+        <button class="x" id="closePreset" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="sheetBody">
+        <label class="field">
+          <span>Name</span>
+          <input id="pName" placeholder="e.g., Low Temp Flavor" maxlength="26" />
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span>Minutes</span>
+            <input id="pMin" type="number" inputmode="numeric" min="0" max="59" value="1" />
+          </label>
+          <label class="field">
+            <span>Seconds</span>
+            <input id="pSec" type="number" inputmode="numeric" min="0" max="59" value="0" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Tool</span>
+          <select id="pTool">
+            <option>Glass Dab Rig</option>
+            <option>Lookah Seahorse Plus</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Wax</span>
+          <select id="pWax">
+            <option>Live Resin</option>
+            <option>Badder</option>
+            <option>Shatter</option>
+            <option>Rosin</option>
+            <option>Sugar Diamonds</option>
+            <option>Distillate</option>
+          </select>
+        </label>
+
+        <div class="sheetActions">
+          <button class="chipBtn danger" id="deletePreset" type="button" hidden>Delete</button>
+          <button class="chipBtn ghost" id="cancelPreset" type="button">Cancel</button>
+          <button class="chipBtn" id="savePreset" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info modal -->
+  <div class="modal" id="infoModal" aria-hidden="true">
+    <div class="sheet tall glass">
+      <div class="sheetHead">
+        <div>
+          <div class="sheetTitle">2HIGH Intel</div>
+          <div class="sheetSub">Stats + logs + settings.</div>
+        </div>
+        <button class="x" id="closeInfo" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="sheetBody">
+        <div class="stats">
+          <div class="stat glass2">
+            <div class="k">Total dabs</div>
+            <div class="v" id="statTotal">0</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used tool</div>
+            <div class="v" id="statTool">—</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used wax</div>
+            <div class="v" id="statWax">—</div>
+          </div>
+          <div class="stat glass2">
+            <div class="k">Most used timer</div>
+            <div class="v" id="statTimer">—</div>
+          </div>
+        </div>
+
+        <div class="toggles">
+          <button class="toggle glass2" id="voiceToggle" type="button" aria-pressed="true">
+            <span class="t">Voice callout</span>
+            <span class="s" id="voiceState">On</span>
+          </button>
+          <button class="toggle glass2" id="hapticsToggle" type="button" aria-pressed="true">
+            <span class="t">Haptics</span>
+            <span class="s" id="hapticsState">On</span>
+          </button>
+          <button class="toggle glass2 danger" id="clearAll" type="button">
+            <span class="t">Clear all history</span>
+            <span class="s">⚠</span>
+          </button>
+        </div>
+
+        <div class="logHead">
+          <h3>Dab Log</h3>
+          <div class="logSub">Only logs when the timer actually hits 0.</div>
+        </div>
+        <div class="log" id="logList"></div>
+
+        <p class="legal">
+          Keep it chill: start lower temp, sip water, and don’t roast your lungs for clout.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+  <script src="script.js"></script>
+</body>
+</html>
